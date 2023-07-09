@@ -5,6 +5,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { channel } = require('diagnostics_channel');
 
 const app = express()
 
@@ -12,15 +13,13 @@ app.use(bodyParser.json())
 app.use(cors())
 
 app.get('/auth/discord/login', async (req, res, next)=>{
-    const url  = "https://discord.com/api/oauth2/authorize?client_id=1127517265215107222&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Fdiscord%2Fcallback&response_type=code&scope=identify"
+    const url  = "https://discord.com/api/oauth2/authorize?client_id=1127517265215107222&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Fdiscord%2Fcallback&response_type=code&scope=identify%20guilds"
 
     res.json({url : url})
 })
 
-app.get('/auth/discord/callback' , async (req, res, next) => {
-    try{
-
-        const {code} = req.query
+async function  auth(req){
+    const {code} = req.query
         const params = new URLSearchParams({
             client_id : process.env.DISCORD_CLIENT_ID,
             client_secret : process.env.DISCORD_CLIENT_SECRET ,
@@ -39,20 +38,45 @@ app.get('/auth/discord/callback' , async (req, res, next) => {
                 headers 
             }
         );
+        return response.data.access_token
+}
+
+app.get('/auth/discord/callback' , async (req, res, next) => {
+    try{
 
         const userResponse = await axios.get('https://discord.com/api/users/@me', {
             headers : {
-                Authorization : `Bearer ${response.data.access_token}`
+                Authorization : `Bearer ${access_token}`
             }
         });
-        console.log(userResponse.data);
-        res.send(userResponse.data)
+        
+        res.json(userResponse.data)
     }
     catch(err){
         console.log(err);
     }
+})
 
 
+app.get('/auth/discord/channels',async () => {
+    try{
+        let access_token = await auth(req)
+        const channels = await axios.get('https://discord.com/api/v10/users/@me/guilds', {
+            headers : {
+                Authorization : `Bearer ${access_token}`
+            }
+        })
+
+        channelDetails = channels.data.map(channel => {
+            return {name : channel.name,
+                    id : channel.id,
+                    owner : channel.owner}
+        })
+        console.log(channelDetails)
+    }
+    catch(err){
+        console.log(err);
+    }
 })
 
 app.use((req,res) => {

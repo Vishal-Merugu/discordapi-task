@@ -6,16 +6,25 @@
     <title>Document</title>
 </head>
 <body>
-    <form action="">
+    <form action="" id = "form1">
         <button type="submit">Authenticate</button>
     </form>
-    
+    <br>
+    <form action="" id = 'form2'>
+        <button   type = "submit">Get My Channels</button>
+    </form>
 </body>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-    document.querySelector("form").onsubmit = async() => {
+    document.getElementById("#form1").onsubmit = async() => {
         const response = await axios.get("http://localhost:3000/auth/discord/login")
         window.location.href = response.data.url
+    }
+
+    document.getElementById("#form2").onsubmit = async() => {
+        const response = await axios.get("http://localhost:3000/auth/discord/login")
+        window.location.href = response.data.url
+
     }
 </script>
 </html>
